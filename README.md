@@ -1,5 +1,6 @@
 # HoloLattices-2D
-C code for to compute holographic lattices with two transverse dimensions
+
+C and python code for to compute holographic lattices with two transverse dimensions, for the Gubser-Rocha EMD Lattice, along with the thermoelectric DC conductivity.
 
 This code is functional, and includes the Stokes methods to compute DC thermoelectric conductivity
 
