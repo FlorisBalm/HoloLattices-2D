@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# Basic settings for SBATCH
+#SBATCH --job-name=A1-GR
+#SBATCH --account=ulcei468
+#SBATCH --partition=fat
+#SBATCH --output=log/RUN_OUT_%j.txt
+#SBATCH --error=log/RUN_ERR_%j.txt
+#SBATCH --tasks-per-node=64
+#SBATCH --time=3:00:00
+#SBATCH -N 1
+#SBATCH --exclusive
+#SBATCH --cpus-per-task=1
+
+
+#module load 2021
+#module load HDF5/1.10.7-gompi-2021a FFTW/3.3.9-gompi-2021a ScaLAPACK/2.1.0-gompi-2021a-fb libfabric/1.12.1-GCCcore-10.3.0 Python/3.9.5-GCCcore-10.3.0 SuiteSparse/5.10.1-foss-2021a-METIS-5.1.0 Hypre/2.21.0-foss-2021a MUMPS/5.4.0-foss-2021a-metis SCOTCH/6.1.0-gompi-2021a METIS/5.1.0-GCCcore-10.3.0 OpenBLAS/0.3.15-GCC-10.3.0 OpenMPI/4.1.1-GCC-10.3.0 
+
+set -eu -o pipefail
+
+export PETSC_DIR="<...>"
+export PETSC_ARCH=<>
+
+# Edit this to change location of where to run from
+HOLO_HOME=$(pwd)
+
+
+# Edit this to change location of where to run from
+HOLO_HOME=$(pwd)
+
+# B is always zero here
+B=0.000
+nperiodsx=1
+nperiodsy=1
+
+# This is T/mu
+G=0.12
+nx=64
+ny=64
+nz=80
+T=0.1
+
+
+for A in 0.1;  do
+    # Q is determined by T in units of mu, and that determines
+    # mu in units of horizon radius as well
+    Q=$(bc -l <<< "pi=4*a(1);tf=${T};3.0/(16*pi*pi*tf*tf)")
+    mu=$(bc -l <<< "sqrt(3*${Q}*(${Q}+1))") 
+
+    Gf=$(printf "%.04f" $G)
+    Tf=$(printf "%.04f" $T)
+    Af=$(printf "%.04f" $A)
+
+    Grh=$(bc -l <<< "${G}*${mu}")
+
+    # Unit cell size
+    lx=$(bc -l <<< "2*4*a(1)*${nperiodsx}/(${G}*${mu})")
+
+    outputfile="data/EMD_2D_Lattice_A${Af}_T${Tf}_G${Gf}_${nx}x${ny}x${nz}.h5"
+
+    echo "Running code to output to ${outputfile}"
+
+    LD_LIBRARY_PATH=${PETSC_DIR}/${PETSC_ARCH}/lib:${LD_LIBRARY_PATH} srun -N ${SLURM_JOB_NUM_NODES} -n ${SLURM_NTASKS} build/petsc_chebyshev_dilaton.o -da_grid_x ${nx} -da_grid_y ${ny} -da_grid_z ${nz} -snes_linesearch_type basic -snes_monitor_short -ksp_gmres_restart 130 -ksp_type gmres -ksp_monitor_true_residual -ksp_converged_reason -snes_converged_reason -pc_type asm -output_to_file ${outputfile} -param_ax ${A} -param_ay ${A} -param_mu ${mu} -param_Q ${Q}  -param_Gx ${Grh} -param_Gy ${Grh} -param_phasex 0 -param_phasey 0 -param_nperiodsx 1 -param_nperiodsy 1 -param_B 0 -param_c1 0  -snes_rtol 1e-14 -snes_divergence_tolerance 1e8 -snes_stol 1e-9
+    exitcode=$?
+    if [ ${exitcode} -ne 0 ]; then
+        echo "Exit code wrong"
+        exit -1
+    fi
+    seedfile=${outputfile}
+done

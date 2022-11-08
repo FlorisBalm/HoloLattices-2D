@@ -1,0 +1,33 @@
+EquationOptions:
+  grid_sizes: [64,64]
+  grid_domains: [1.0,1.0]
+  grid_spacings: [unif,unif]
+  coordinates: [x,y]
+  grid_periodic: [yes,yes]
+  diff_order: 6
+  max_deriv: 2
+  dims: 2
+  eom_derivative_methods: ["fdd", "fdd"]
+  num_fields: 4
+  field_dtype: real
+  num_eqs_of_motion: 4
+  field: psiH
+
+ConstantOptions:
+  constants:
+    ex: .inf
+    ey: .inf
+    zetax: .inf
+    zetay: .inf
+
+BackgroundOptions:
+  background_filename: "REPLACE_BG"
+  background_field_name : f
+  background_dim : 3
+  max_bg_deriv: 2
+  background_constant_ordering: [mu, Q, ax, ay, Gx,Gy, nperiodsx, nperiodsy, phasex, phasey, b, c1]
+
+IOOptions:
+  coefficient_folder: "/projects/0/einf468/EMDChebyshev_Correct//Stokes/coefs/"
+  output_file: "Output.h5"
+  observables_file: "/projects/0/einf468/EMDChebyshev_Correct/Stokes/coefs/Observables.yaml"

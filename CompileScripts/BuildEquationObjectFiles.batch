@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+#SBATCH --partition=thin
+#SBATCH --output=COMPILE_OUT.txt
+#SBATCH --error=COMPILE_ERR.txt
+#SBATCH --time=1:00:00
+#SBATCH --mem=50G
+#SBATCH --tasks=1
+#SBATCH --nodes=1
+
+module load 2021
+
+module load HDF5/1.10.7-gompi-2021a
+
+export PETSC_DIR=/projects/0/einf468/petsc-3.15.5
+export PETSC_ARCH=petsc_real_315
+
+pwd
+
+cd "equations/output"
+for x in EOMs*c; do 
+mpicc -c ${x} -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include -Ofast -march=znver2 -mtune=znver2  -Wall -Wextra -Wno-unused-parameter -ffast-math -Wconversion -std=c11 -flto -funroll-loops
+
+
+done
+exit
+cd "../../coefs/output_inlined/"
+for x in *c; do 
+mpicc -c ${x} -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include -Ofast -march=znver2 -mtune=znver2  -Wall -Wextra -Wno-unused-parameter -ffast-math -Wconversion -std=c11 -flto -funroll-loops
+done

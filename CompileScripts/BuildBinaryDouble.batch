@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+#SBATCH --partition=thin
+#SBATCH --output=COMPILE_OUT.txt
+#SBATCH --error=COMPILE_ERR.txt
+#SBATCH --time=1:00:00
+#SBATCH --mem=50G
+#SBATCH --tasks=1
+#SBATCH --nodes=1
+
+module load 2021
+
+module load HDF5/1.10.7-gompi-2021a FFTW/3.3.9-gompi-2021a ScaLAPACK/2.1.0-gompi-2021a-fb libfabric/1.12.1-GCCcore-10.3.0 Python/3.9.5-GCCcore-10.3.0 SuiteSparse/5.10.1-foss-2021a-METIS-5.1.0 Hypre/2.21.0-foss-2021a MUMPS/5.4.0-foss-2021a-metis SCOTCH/6.1.0-gompi-2021a METIS/5.1.0-GCCcore-10.3.0 OpenBLAS/0.3.15-GCC-10.3.0 OpenMPI/4.1.1-GCC-10.3.0 
+
+export PETSC_DIR="/projects/0/einf468/petsc-3.15.5/"
+export PETSC_ARCH=petsc_real_315
+
+
+# Compiling with extra options
+mpicc src/petsc_cubed_dilaton.c -L${PETSC_DIR}/${PETSC_ARCH}/lib -Wl,-rpath=${PETSC_DIR}/${PETSC_ARCH}/lib -lhdf5 -lm -lpetsc -I${PETSC_DIR}/include -I${PETSC_DIR}/${PETSC_ARCH}/include coefs/output_inlined/*.o equations/output/*.o -o build/petsc_cubed_dilaton.o -Ofast   -Wall -Wextra -march=znver2 -mtune=znver2 -Wno-unused-parameter -I. -ffast-math -Wconversion -std=c11 -flto -funroll-loops 
+

@@ -1,0 +1,9 @@
+-1 + f[0][0] + ay*PetscSinScalar(Gx*x - Gy*y) - ax*PetscSinScalar(Gx*x + Gy*y)
+3*Q*f[1][0] + 4*f[1][3] - 3*Q*PetscPowScalar(f[1][0],2)
+-1 + f[2][0]
+-1 + f[3][0]
+-1 + f[4][0]
+-1 + f[5][0]
+f[6][0]
+f[7][0]
+f[8][0]
